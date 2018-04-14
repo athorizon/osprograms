@@ -1,0 +1,43 @@
+#include<stdio.h>
+#include<unistd.h>
+#include<pthread.h>
+#include<semaphore.h>
+#include<fcntl.h>
+main()
+{
+ pthread_mutex_t mutex,file;
+ int readers=0,take,count,fd,n;
+ char buff[100];
+ fd=open("rdwrt",O_CREAT | O_RDWR, 0777);
+ while(1==1)
+  {
+   printf("if you want to read file then enter 1 else if you want to write the file enter 0, other inputes will exit the program\n");
+   scanf("%d",&take);
+   if(take==0){goto label1;}
+   else if(take==1){goto label2;}
+label1:{
+             wait(file);
+             printf("writing file\n");
+             printf("enter the value to write into file");
+             n=read(0,buff,100);
+             write(fd,buff,n);
+             printf("current value of readers waiting %d",readers);
+             signal(file);
+       }
+label2:{
+              printf("enter numbers of readers who want to read file now, if no more readers are ready simply press 0,\n");
+              scanf("%d",&count);
+              readers=count+readers;
+              wait(mutex);
+              int i;
+              do{signal(mutex);
+              printf("reading file\n");
+              read(fd,buff,100);
+              printf("file contents were %s",buff);
+              wait(mutex);
+              readers--;}while(readers==0);
+              if(readers=0){signal(file);}
+              signal(mutex);       
+       }
+  }
+}
